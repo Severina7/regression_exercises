@@ -32,9 +32,11 @@ def get_zillow_data():
                        yearbuilt,
                        taxamount,
                        fips,
-                       propertylandusetypeid
+                       propertylandusetypeid,
+                       transactiondate
                 FROM properties_2017
                 JOIN propertylandusetype USING(propertylandusetypeid)
+                JOIN predictions_2017 USING(parcelid)
                 WHERE propertylandusetypeid = '261'
                 '''
     
@@ -92,9 +94,11 @@ def wrangle_zillow():
                        yearbuilt,
                        taxamount,
                        fips,
-                       propertylandusetypeid
+                       propertylandusetypeid,
+                       transactiondate
                 FROM properties_2017
                 JOIN propertylandusetype USING(propertylandusetypeid)
+                JOIN predictions_2017 USING(parcelid)
                 WHERE propertylandusetypeid = '261'
                 '''
     df = pd.read_sql(sql_query, get_connection('zillow'))
@@ -137,7 +141,7 @@ def wrangle_zillow():
 
     # Filtering the data through number of bedrooms
     df = df[df.bedroomcnt <= 8]
-    
+
     return df
 # # split the data
 # train, validate, test = split_zillow()
