@@ -147,7 +147,7 @@ def wrangle_zillow():
     houses['tax_value'] = houses['tax_value'].astype(int)
     houses['yearbuilt'] = houses['yearbuilt'].astype(int)
     houses['fips'] = houses['fips'].astype(int)
-
+    houses['sale_date'] = pd.to_datetime(houses['sale_date']).astype('int64')  
 
     # Filtering the data through number of bedrooms
     houses = houses[houses.bathrooms <= 7]
