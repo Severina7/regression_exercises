@@ -84,7 +84,8 @@ def get_local_zillow():
 def wrangle_zillow():
     '''Cleans, and splits Zillow Data for exploration, once acquired'''
 
- # Creating a SQL query
+# Compiling the code for wrangling data
+
     sql_query = '''
                 SELECT 
                        bedroomcnt,
@@ -97,53 +98,63 @@ def wrangle_zillow():
                        propertylandusetypeid,
                        transactiondate
                 FROM properties_2017
-                JOIN propertylandusetype USING(propertylandusetypeid)
                 JOIN predictions_2017 USING(parcelid)
+                JOIN propertylandusetype USING(propertylandusetypeid)
                 WHERE propertylandusetypeid = '261'
                 '''
-    df = pd.read_sql(sql_query, get_connection('zillow'))
     
-    # Or getting local zillow
+    # Reading in the DataFrame from Codeup db.
+    properties_2017 = pd.read_sql(sql_query, get_connection('zillow'))
+    '''
+    get_local_zillow reads in telco data from Codeup database, writes data to
+    a csv file if a local file does not exist, and returns a df.
+    '''
     if os.path.isfile('properties_2017.csv'):
         
         # If csv file exists read in data from csv file.
-        df = pd.read_csv('properties_2017.csv', index_col=0)
+        properties_2017 = pd.read_csv('properties_2017.csv', index_col=0)
         
     else:
         
         # Read fresh data from db into a DataFrame
-        df = get_zillow_data()
+        properties_2017 = get_zillow_data()
         
         # Cache data
-        df.to_csv('properties_2017.csv')
+        properties_2017.to_csv('properties_2017.csv')
 
-        df = pd.read_csv('properties_2017.csv', index_col=0)
 
     # Dropping null values
-    df = df.dropna(axis = 0, how ='any')
+    houses = properties_2017.dropna(axis = 0, how ='any')
 
     # Dropping a column
-    df = df.drop(['propertylandusetypeid'], axis = 1)
+    houses = houses.drop(['propertylandusetypeid'], axis = 1)
 
     # Renaming columns
     cols_to_rename = {
-        'calculatedfinishedsquarefeet': 'indoor_squarefeet',
-        'taxvaluedollarcnt': 'taxvalue',
+        'calculatedfinishedsquarefeet': 'indoor_sqft',
+        'taxvaluedollarcnt': 'tax_value',
+        'transactiondate': 'sale_date',
+        'bedroomcnt': 'bedrooms',
+        'bathroomcnt': 'bathrooms',
+        'taxamount': 'tax_amount',
     }
-    df = df.rename(columns=cols_to_rename)
+
+    houses = houses.rename(columns=cols_to_rename)
 
     # Converting the following columns to int
-    df["bedroomcnt"] = df["bedroomcnt"].astype(int)
-    df["indoor_squarefeet"] = df["indoor_squarefeet"].astype(int)
-    df["taxvalue"] = df["taxvalue"].astype(int)
-    df["yearbuilt"] = df["yearbuilt"].astype(int)
-    df["fips"] = df["fips"].astype(int)
+    houses['bedrooms'] = houses['bedrooms'].astype(int)
+    houses['indoor_sqft'] = houses['indoor_sqft'].astype(int)
+    houses['tax_value'] = houses['tax_value'].astype(int)
+    houses['yearbuilt'] = houses['yearbuilt'].astype(int)
+    houses['fips'] = houses['fips'].astype(int)
+
 
     # Filtering the data through number of bedrooms
-    df = df[df.bedroomcnt <= 8]
+    houses = houses[houses.bathrooms <= 7]
 
-    return df
-# # split the data
-# train, validate, test = split_zillow()
+    return houses
 
-# train, validate, test
+    # # split the data
+    # train, validate, test = split_zillow()
+
+    # train, validate, test
