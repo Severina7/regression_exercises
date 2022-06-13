@@ -4,7 +4,7 @@ import numpy as np
 import scipy.stats
 import os
 from env import host, user, password
-# from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split
 
 
 # Acquiring the Zillow Data
@@ -65,18 +65,18 @@ def get_local_zillow():
         
     return df
 
-# def split_zillow():
-#     '''
-#     Takes in a DataFrame and returns train, validate, and test DataFrames.
-#     '''
-#     # splits df into train_validate and test using train_test_split()
-#     train_validate, test = train_test_split(df, test_size=.2, random_state=175)
+def split_zillow(df):
+    '''
+    Takes in a DataFrame and returns train, validate, and test DataFrames.
+    '''
+    # splits df into train_validate and test using train_test_split()
+    train_validate, test = train_test_split(df, test_size=.2, random_state=175)
     
-#     # splits train_validate into train and validate using train_test_split() stratifying on species to get an even mix of each species
-#     train, validate = train_test_split(train_validate, 
-#                                        test_size=.3, 
-#                                        random_state=175)
-#     return train, validate, test
+    # splits train_validate into train and validate using train_test_split() stratifying on species to get an even mix of each species
+    train, validate = train_test_split(train_validate, 
+                                       test_size=.3, 
+                                       random_state=175)
+    return train, validate, test
 
 
 ################# Cleaning and splitting the Zillow Data ######################
@@ -84,27 +84,26 @@ def get_local_zillow():
 def wrangle_zillow():
     '''Cleans, and splits Zillow Data for exploration, once acquired'''
 
-# Compiling the code for wrangling data
+# # Compiling the code for wrangling data
 
-    sql_query = '''
-                SELECT 
-                       bedroomcnt,
-                       bathroomcnt,
-                       calculatedfinishedsquarefeet,
-                       taxvaluedollarcnt,
-                       yearbuilt,
-                       taxamount,
-                       fips,
-                       propertylandusetypeid,
-                       transactiondate
-                FROM properties_2017
-                JOIN predictions_2017 USING(parcelid)
-                JOIN propertylandusetype USING(propertylandusetypeid)
-                WHERE propertylandusetypeid = '261'
-                '''
+#     sql_query = '''
+#                 SELECT 
+#                        bedroomcnt,
+#                        bathroomcnt,
+#                        calculatedfinishedsquarefeet,
+#                        taxvaluedollarcnt,
+#                        yearbuilt,
+#                        taxamount,
+#                        fips,
+#                        propertylandusetypeid,
+#                        transactiondate
+#                 FROM properties_2017
+#                 JOIN predictions_2017 USING(parcelid)
+#                 JOIN propertylandusetype USING(propertylandusetypeid)
+#                 WHERE propertylandusetypeid = '261'
+#                 '''
     
-    # Reading in the DataFrame from Codeup db.
-    properties_2017 = pd.read_sql(sql_query, get_connection('zillow'))
+#     properties_2017 = pd.read_sql(sql_query, get_connection('zillow'))
     '''
     get_local_zillow reads in telco data from Codeup database, writes data to
     a csv file if a local file does not exist, and returns a df.
@@ -122,7 +121,6 @@ def wrangle_zillow():
         # Cache data
         properties_2017.to_csv('properties_2017.csv')
 
-
     # Dropping null values
     houses = properties_2017.dropna(axis = 0, how ='any')
 
@@ -138,7 +136,6 @@ def wrangle_zillow():
         'bathroomcnt': 'bathrooms',
         'taxamount': 'tax_amount',
     }
-
     houses = houses.rename(columns=cols_to_rename)
 
     # Converting the following columns to int
@@ -152,9 +149,11 @@ def wrangle_zillow():
     # Filtering the data through number of bedrooms
     houses = houses[houses.bathrooms <= 7]
 
-    return houses
+    # splits df into train_validate and test using train_test_split()
+    train_validate, test = train_test_split(houses, test_size=.2, random_state=175)
 
-    # # split the data
-    # train, validate, test = split_zillow()
-
-    # train, validate, test
+    # splits train_validate into train and validate using train_test_split() stratifying on species to get an even mix of each species
+    train, validate = train_test_split(train_validate, 
+                                        test_size=.3, 
+                                        random_state=175)
+    return train, validate, test
